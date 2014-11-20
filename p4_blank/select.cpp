@@ -1,7 +1,7 @@
 #include "catalog.h"
 #include "query.h"
 #include "index.h"
-
+//Daniel Miller and Matthew Cloutier
 /*
  * Selects records from the specified relation.
  *

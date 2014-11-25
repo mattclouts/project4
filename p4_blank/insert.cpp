@@ -32,17 +32,17 @@ Status Updates::Insert(const string& relation,      // Name of the relation
     if (relStatus != OK)
         return relStatus;
     
-     for (int i = 0; i < attrCnt; i++){
+    for (int i = 0; i < attrCnt; i++){
         if (attrList[i].attrName == NULL)
             return ATTRTYPEMISMATCH;
     }
     for (int i = 0; i < relAttrCnt; i++){
         recordSize += relAttrList[i].attrLen;
     }
+    
     Record newRecord;
     newRecord.length = recordSize;
     newRecord.data = malloc (recordSize);
-    
     
     for (int i = 0; i < relAttrCnt; i++){
         for (int j = 0; j < attrCnt; j++){

@@ -79,8 +79,8 @@ Status Updates::Insert(const string& relation,      // Name of the relation
             } 
         }
     }
-    Utilities lordHelpMe;
-    lordHelpMe.Print(relation);
+    Utilities helper;
+    helper.Print(relation);
     free(newRecord.data);
     return OK;
 }

@@ -43,11 +43,11 @@ Status Updates::Insert(const string& relation,      // Name of the relation
     newRecord.length = recordSize;
     newRecord.data = malloc (recordSize);
     
-    
     for (int i = 0; i < relAttrCnt; i++){
         for (int j = 0; j < attrCnt; j++){
             if (strcmp(relAttrList[i].attrName, attrList[j].attrName) == 0){
                 memcpy(((char *)newRecord.data) + relAttrList[i].attrOffset, attrList[j].attrValue, relAttrList[i].attrLen);
+                continue;
             }
         }
     }
@@ -76,7 +76,7 @@ Status Updates::Insert(const string& relation,      // Name of the relation
                 delete tempIndex;
                 continue;
                 }
-            } 
+            }
         }
     }
     Utilities helper;

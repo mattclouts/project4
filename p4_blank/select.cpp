@@ -31,16 +31,34 @@ for (int i = 0; i < projCnt; i++){
 //Get the length of all the attributes
 for (int i = 0; i < projCnt; i++)
     recordSize += projNames[i].attrLen;
-
+AttrDesc* predAttrList = new AttrDesc;
+Status selectStatus;
 //Check if there's a selection predicate
 //Yes? get predicate
 //No? Do Scan Select
-
-//Check if there's an index & the operator is EQ
-//Yes?  Index Scan
-//No? Select Scan
-
-
+if(!*attrValue){
+    selectStatus = Operators::ScanSelect(result, projCnt, projNames, projAttrList,NULL, NULL, recordSize);
+    if (selectStatus != OK)
+        return selectStatus;
+}
+else{
+    predicate = attrCat->getInfo(*attr.relName, *attr.attrName, predAttrList);
+    //Check if there's an index & the operator is EQ
+    //Yes?  Index Select
+    //No? Select Scan
+    if (predicate.indexed && op == EQ){
+       selectStatus = Operators::IndexSelect(result, projCnt, projNames, projAttrList, op, *attr.attrValue, recordSize);
+       if (selectStatus != OK)
+           return selectStatus;
+    }
+    else{
+        selectStatus = Operators::ScanSelect(result, projCnt, projNames, projAttrList,NULL, NULL, recordSize);
+        if (selectStatus != OK)
+            return selectStatus;
+    }
+        
+}
+    
 delete[] projAttrList;
 return OK;
 }

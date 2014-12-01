@@ -16,11 +16,8 @@ Status Operators::Select(const string & result,      // name of the output relat
 		         const void *attrValue)     // literal value in the predicate
 {
 AttrDesc* projAttrList = new AttrDesc[projCnt];
-int relAttrCnt = 0;
 Status projStatus;
 int recordSize = 0;
-
-AttrDesc predicate;
 
 //Fill in attribute list from projection names
 for (int i = 0; i < projCnt; i++){
@@ -30,36 +27,36 @@ for (int i = 0; i < projCnt; i++){
 }
 //Get the length of all the attributes
 for (int i = 0; i < projCnt; i++)
-    recordSize += projNames[i].attrLen;
-AttrDesc* predAttrList = new AttrDesc;
+    recordSize += projAttrList[i].attrLen;
+AttrDesc predAttrList;
 Status selectStatus;
 //Check if there's a selection predicate
 //Yes? get predicate
 //No? Do Scan Select
-if(!*attrValue){
-    selectStatus = Operators::ScanSelect(result, projCnt, projNames, projAttrList,NULL, NULL, recordSize);
+if(!attrValue){
+    selectStatus = Operators::ScanSelect(result, projCnt, projAttrList, NULL,op, attrValue, recordSize);
     if (selectStatus != OK)
         return selectStatus;
 }
 else{
-    predicate = attrCat->getInfo(*attr.relName, *attr.attrName, predAttrList);
+    selectStatus = attrCat->getInfo(attr->relName, attr->attrName, predAttrList);
+    if (selectStatus != OK)
+        return selectStatus;
     //Check if there's an index & the operator is EQ
     //Yes?  Index Select
     //No? Select Scan
-    if (predicate.indexed && op == EQ){
-       selectStatus = Operators::IndexSelect(result, projCnt, projNames, projAttrList, op, *attr.attrValue, recordSize);
+    if (predAttrList.indexed && op == EQ){
+       selectStatus = Operators::IndexSelect(result, projCnt, projAttrList, &predAttrList, op, attrValue, recordSize);
        if (selectStatus != OK)
            return selectStatus;
     }
     else{
-        selectStatus = Operators::ScanSelect(result, projCnt, projNames, projAttrList,NULL, NULL, recordSize);
+        selectStatus = Operators::ScanSelect(result, projCnt, projAttrList, &predAttrList ,op, attrValue, recordSize);
         if (selectStatus != OK)
             return selectStatus;
-    }
-        
+    }        
 }
     
 delete[] projAttrList;
 return OK;
 }
-

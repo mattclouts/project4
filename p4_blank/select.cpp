@@ -27,7 +27,7 @@ for (int i = 0; i < projCnt; i++){
 }
 //Get the length of all the attributes
 for (int i = 0; i < projCnt; i++)
-    recordSize += projNames[i].attrLen;
+    recordSize += projAttrList[i].attrLen;
 AttrDesc predAttrList;
 Status selectStatus;
 //Check if there's a selection predicate

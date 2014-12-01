@@ -20,7 +20,7 @@ Status Operators::ScanSelect(const string& result,       // Name of the output r
   
   Status scanSelectStatus;
   
-  
+  /*
   HeapFileScan *myHeapScan = NULL;
           
   if(op == NOTSET)
@@ -28,7 +28,10 @@ Status Operators::ScanSelect(const string& result,       // Name of the output r
   else
       myHeapScan = new HeapFileScan(result, attrDesc->attrOffset, attrDesc->attrLen, (Datatype)attrDesc->attrType, (char*)(attrValue), op, scanSelectStatus);
   
-  
+  */
+  HeapFileScan myHeapScan(projNames[0].relName, scanSelectStatus);
+  if(op != NOTSET)
+      HeapFileScan myHeapScan(projNames[0].relName, attrDesc->attrOffset, attrDesc->attrLen, (Datatype)attrDesc->attrType, (char*)(attrValue), op, scanSelectStatus);
   if(scanSelectStatus != OK)
       return scanSelectStatus;
   
@@ -37,7 +40,7 @@ Status Operators::ScanSelect(const string& result,       // Name of the output r
 //  if(scanSelectStatus != OK)
 //      return scanSelectStatus;
 //  
-  RID outRid;
+  RID outRid, outRid2;
   
   HeapFile myHeap(result, scanSelectStatus);
   
@@ -47,13 +50,10 @@ Status Operators::ScanSelect(const string& result,       // Name of the output r
   Record newRecord;
   newRecord.length = reclen;
   newRecord.data = malloc (reclen);
-  
-  while(myHeapScan->scanNext(outRid) == OK)
+  Record oldRecord;
+  while(myHeapScan.scanNext(outRid, oldRecord) == OK)
   {
       int offset = 0;      
-
-      Record oldRecord;
-      scanSelectStatus = myHeapScan->getRecord(outRid, oldRecord);
       
       if(scanSelectStatus != OK)
       {
@@ -67,20 +67,16 @@ Status Operators::ScanSelect(const string& result,       // Name of the output r
           offset += projNames[i].attrLen;
       }
       
-      scanSelectStatus = myHeap.insertRecord(newRecord, outRid);
+      scanSelectStatus = myHeap.insertRecord(newRecord, outRid2);
       
       if(scanSelectStatus != OK)
       {
         free(newRecord.data);
         return scanSelectStatus;
       }
-      
-      myHeapScan->endScan();
-      free(newRecord.data);
-      return OK;
-  };
-  
+  }
+  myHeapScan.endScan();
+  free(newRecord.data);
   /* Your solution goes here */
-  delete myHeapScan;
   return OK;
 }

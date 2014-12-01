@@ -80,8 +80,6 @@ Status Updates::Insert(const string& relation,      // Name of the relation
             }
         }
     }
-    Utilities helper;
-    helper.Print(relation);
     free(newRecord.data);
     return OK;
 }

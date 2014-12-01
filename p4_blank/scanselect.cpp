@@ -23,21 +23,17 @@ Status Operators::ScanSelect(const string& result,       // Name of the output r
   if(scanSelectStatus != OK)
       return scanSelectStatus;
   
-  HeapFileScan myHeapScan;
+  HeapFileScan myHeapScan(result, scanSelectStatus);
   
-  if(op == NULL)
+  if(op != NULL)
   {
-      HeapFileScan myHeapScan(result, scanSelectStatus);
-  }
-  else
-  {
-      HeapFileScan myHeapScan(attrDesc->attrOffset, attrDesc->attrLen, (Datatype)attrDesc->attrType, (char*)(attrValue), op, scanSelectStatus);
+      HeapFileScan myHeapScan(result, attrDesc->attrOffset, attrDesc->attrLen, (Datatype)attrDesc->attrType, (char*)(attrValue), op, scanSelectStatus);
   }
   
   if(scanSelectStatus != OK)
       return scanSelectStatus;
   
-  scanSelectStatus = HeapFileScan::startScan(attrDesc->attrOffset, attrDesc->attrLen, (Datatype)attrDesc->attrType, (char*)(attrValue), op);
+  scanSelectStatus = myHeapScan.startScan(attrDesc->attrOffset, attrDesc->attrLen, (Datatype)attrDesc->attrType, (char*)(attrValue), op);
   
   if(scanSelectStatus != OK)
       return scanSelectStatus;

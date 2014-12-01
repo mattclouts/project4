@@ -3,6 +3,7 @@
 #include "index.h"
 #include "stdlib.h"
 #include "string.h"
+
 Status Operators::IndexSelect(const string& result,       // Name of the output relation
                               const int projCnt,          // Number of attributes in the projection
                               const AttrDesc projNames[], // Projection list (as AttrDesc)

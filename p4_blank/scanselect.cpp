@@ -19,7 +19,6 @@ Status Operators::ScanSelect(const string& result,       // Name of the output r
   cout << "Algorithm: File Scan" << endl;
   
   Status scanSelectStatus;
-  scanSelectStatus = HeapFileScan::startScan(const int offset_, const int length_, const Datatype type_, const char* filter_, const Operator op_);
   
   if(scanSelectStatus != OK)
       return scanSelectStatus;
@@ -32,9 +31,13 @@ Status Operators::ScanSelect(const string& result,       // Name of the output r
   }
   else
   {
-      int offset = projCnt * reclen;
-      HeapFileScan myHeapScan(offset, reclen, (Datatype)AttrDesc->attrType, attrValue, op, scanSelectStatus);
+      HeapFileScan myHeapScan(attrDesc->attrOffset, attrDesc->attrLen, (Datatype)attrDesc->attrType, (char*)(attrValue), op, scanSelectStatus);
   }
+  
+  if(scanSelectStatus != OK)
+      return scanSelectStatus;
+  
+  scanSelectStatus = HeapFileScan::startScan(attrDesc->attrOffset, attrDesc->attrLen, (Datatype)attrDesc->attrType, (char*)(attrValue), op);
   
   if(scanSelectStatus != OK)
       return scanSelectStatus;
@@ -66,7 +69,7 @@ Status Operators::ScanSelect(const string& result,       // Name of the output r
       for(int i = 0; i < projCnt; i++)
       {
           memcpy(((char *)newRecord.data) + offset, (char*)(oldRecord.data) + projNames[i].attrOffset, projNames[i].attrLen);
-          offset += projNames[i].attrLength;
+          offset += projNames[i].attrLen;
       }
       
       scanSelectStatus = myHeap.insertRecord(newRecord, outRid);

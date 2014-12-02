@@ -4,6 +4,7 @@
 #include "index.h"
 #include <cmath>
 #include <cstring>
+#include <iostream>
 
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 #define DOUBLEERROR 1e-07
@@ -24,9 +25,19 @@ Status Operators::Join(const string& result,           // Name of the output rel
     	               const attrInfo* attr2)          // Right attr in the join predicate
 {
     /* Your solution goes here */
+    int reclen = 0;
+    for (int i = 0; i < projCnt; i++)
+    {
+    if(projNames[i].attrLen == -1)
+        cout << "Catastrophic Failure" << endl;
+    else
+        reclen += projNames[i].attrLen;
+    }
+    INL(result, projCnt, projNames, attr1, op, attr2, reclen);
 
-	return OK;
+    return OK;
 }
+
 
 // Function to compare two record based on the predicate. Returns 0 if the two attributes 
 // are equal, a negative number if the left (attrDesc1) attribute is less that the right 

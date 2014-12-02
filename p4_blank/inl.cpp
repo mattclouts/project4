@@ -2,7 +2,9 @@
 #include "query.h"
 #include "sort.h"
 #include "index.h"
-
+#include "stdlib.h"
+#include <iostream>
+#include "string.h"
 /* 
  * Indexed nested loop evaluates joins with an index on the 
  * inner/right relation (attrDesc2)
@@ -26,14 +28,13 @@ Status Operators::INL(const string& result,           // Name of the output rela
   //Declare and initialize 2 scans (one for the left attribute, and the other for the right)
   
   Status scanSelectStatus;
-  
-          
-  HeapFileScan myHeapScan = HeapFileScan(attrDesc1->relName, scanSelectStatus);
+    
+  HeapFileScan myHeapScan = HeapFileScan(attrDesc1.relName, scanSelectStatus);
   
   if(scanSelectStatus != OK)
       return scanSelectStatus;
           
-  HeapFileScan myHeapScan2 = HeapFileScan(attrDesc2->relName, attrDesc2->attrOffset, attrDesc2->attrLen, (Datatype)attrDesc2->attrType, (char*)(attrDesc1.attrName), op, scanSelectStatus);
+  HeapFileScan myHeapScan2 = HeapFileScan(attrDesc2.relName, attrDesc2.attrOffset, attrDesc2.attrLen, (Datatype)attrDesc2.attrType, (char*)(attrDesc1.attrName), op, scanSelectStatus);
   //ABOVE: (char*)(attrDesc1.attrName) is probably wrong.  Maybe not tho...
   
   if(scanSelectStatus != OK)
@@ -62,9 +63,9 @@ Status Operators::INL(const string& result,           // Name of the output rela
       
       while(myHeapScan2.scanNext(myRid2, oldRecord2) == OK)
       {
-            int offset2 = 0;      
+            //int offset2 = 0;      
 
-            if(scanSelectStatus2 != OK)
+            if(scanSelectStatus != OK)
             {
               free(newRecord.data);
               return scanSelectStatus;
@@ -102,10 +103,9 @@ Status Operators::INL(const string& result,           // Name of the output rela
       return OK;
   }
   
-  myHeapScan->endScan();
+  myHeapScan.endScan();
   free(newRecord.data);
   
   /* Your solution goes here */
-  delete myHeapScan;
   return OK;
 }

@@ -24,16 +24,28 @@ Status Operators::Join(const string& result,           // Name of the output rel
     	               const Operator op,              // Predicate operator
     	               const attrInfo* attr2)          // Right attr in the join predicate
 {
-    /* Your solution goes here */
-    int reclen = 0;
-    for (int i = 0; i < projCnt; i++)
-    {
-    if(projNames[i].attrLen == -1)
-        cout << "Catastrophic Failure" << endl;
-    else
-        reclen += projNames[i].attrLen;
+    Status joinStatus;
+    AttrDesc attr1Desc;
+    AttrDesc attr2Desc;
+    joinStatus = attrCat->getInfo(attr1->relName, attr1->attrName, attr1Desc); 
+    if(joinStatus != OK) 
+        return joinStatus;
+    joinStatus = attrCat->getInfo(attr2->relName, attr2->attrName, attr2Desc); 
+    if(joinStatus != OK) 
+        return joinStatus;	
+    AttrDesc descOutput[projCnt];
+    int reclen=0;
+    for (int i=0; i<projCnt; i++) {
+	reclen += projNames[i].attrLen;
+	joinStatus = attrCat->getInfo(projNames[i].relName, projNames[i].attrName, descOutput[i]); 
+	if(joinStatus != OK) 
+            return joinStatus;
     }
-    INL(result, projCnt, projNames, attr1, op, attr2, reclen);
+    
+    
+    
+    /* Your solution goes here */
+    Operators::INL(result, projCnt, descOutput, attr1Desc, op, attr2Desc, reclen);
 
     return OK;
 }

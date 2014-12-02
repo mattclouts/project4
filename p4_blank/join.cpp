@@ -45,7 +45,7 @@ Status Operators::Join(const string& result,           // Name of the output rel
     
     
     /* Your solution goes here */
-    Operators::INL(result, projCnt, descOutput, attr1Desc, op, attr2Desc, reclen);
+    Operators::SNL(result, projCnt, descOutput, attr1Desc, op, attr2Desc, reclen);
 
     return OK;
 }

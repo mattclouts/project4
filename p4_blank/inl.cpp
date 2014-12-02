@@ -34,7 +34,7 @@ Status Operators::INL(const string& result,           // Name of the output rela
   if(scanSelectStatus != OK)
       return scanSelectStatus;
           
-  HeapFileScan myHeapScan2 = HeapFileScan(attrDesc2.relName, attrDesc2.attrOffset, attrDesc2.attrLen, (Datatype)attrDesc2.attrType, (char*)(attrDesc1.attrName), op, scanSelectStatus);
+  HeapFileScan myHeapScan2 = HeapFileScan(attrDesc2.relName, scanSelectStatus);
   //ABOVE: (char*)(attrDesc1.attrName) is probably wrong.  Maybe not tho...
   
   if(scanSelectStatus != OK)
@@ -53,7 +53,7 @@ Status Operators::INL(const string& result,           // Name of the output rela
   
   while(myHeapScan.scanNext(myRid, oldRecord) == OK)
   {
-      int offset = 0;
+      
       
       if(scanSelectStatus != OK)
       {
@@ -63,6 +63,12 @@ Status Operators::INL(const string& result,           // Name of the output rela
       
       while(myHeapScan2.scanNext(myRid2, oldRecord2) == OK)
       {
+         
+          int offset = 0;
+          for(int i = 0; i < projCnt; i++){
+            memcpy(((char *)newRecord.data) + offset, (char*)(oldRecord.data) + attrDescArray[i].attrOffset, attrDescArray[i].attrLen);
+            offset += attrDescArray[i].attrLen;
+          }
             //int offset2 = 0;      
 
             if(scanSelectStatus != OK)
@@ -77,19 +83,14 @@ Status Operators::INL(const string& result,           // Name of the output rela
               offset += attrDescArray[i].attrLen;
             }
 
-            scanSelectStatus = myHeap.insertRecord(newRecord, myRid);
+            /*scanSelectStatus = myHeap.insertRecord(newRecord, myRid);
 
             if(scanSelectStatus != OK)
             {
                 free(newRecord.data);
                 return scanSelectStatus;
             }
-      }
-      
-      for(int i = 0; i < projCnt; i++)
-      {
-          memcpy(((char *)newRecord.data) + offset, (char*)(oldRecord.data) + attrDescArray[i].attrOffset, attrDescArray[i].attrLen);
-          offset += attrDescArray[i].attrLen;
+             */
       }
       
       scanSelectStatus = myHeap.insertRecord(newRecord, myRid);

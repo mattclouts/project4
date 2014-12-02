@@ -36,8 +36,8 @@ Status Operators::Join(const string& result,           // Name of the output rel
     AttrDesc descOutput[projCnt];
     int reclen=0;
     for (int i=0; i<projCnt; i++) {
-	reclen += projNames[i].attrLen;
 	joinStatus = attrCat->getInfo(projNames[i].relName, projNames[i].attrName, descOutput[i]); 
+        reclen += descOutput[i].attrLen;
 	if(joinStatus != OK) 
             return joinStatus;
     }

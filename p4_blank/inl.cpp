@@ -5,11 +5,30 @@
 #include "stdlib.h"
 #include <iostream>
 #include "string.h"
-/* 
- * Indexed nested loop evaluates joins with an index on the 
- * inner/right relation (attrDesc2)
- */
 
+  static bool evalOp(int a, Operator op){
+      int temp = -a;
+      if (temp == 0){
+          if(op == EQ || op == LTE || op == GTE)
+              return true;
+          else
+              return false;
+      }
+      else if (temp > 0){
+          if (op == GT || op == GTE || op == NE)
+              return true;
+          else
+              return false;
+      }
+      else if (temp < 0){
+          if (op == LT || op == LTE || op == NE)
+              return true;
+          else
+              return false;
+      }
+      else
+          return false;
+}
 Status Operators::INL(const string& result,           // Name of the output relation
                       const int projCnt,              // Number of attributes in the projection
                       const AttrDesc attrDescArray[], // The projection list (as AttrDesc)
@@ -22,91 +41,72 @@ Status Operators::INL(const string& result,           // Name of the output rela
   
   //BASIC ALGORITHM PSEUDOCODE:
   //foreach tuple r in R do
-  //    foreach tuple s in S do
-  //        if r1 == s1 then add <r,s> to result 
+  //    foreach tuple s in S where r1 == s1 do
+  //        then add <r,s> to result 
   
   //Declare and initialize 2 scans (one for the left attribute, and the other for the right)
   
   Status scanSelectStatus;
-    
-  HeapFileScan myHeapScan = HeapFileScan(attrDesc1.relName, scanSelectStatus);
   
+  //attrDesc2 == outer!
+  HeapFileScan myHeapScan = HeapFileScan(attrDesc2.relName, scanSelectStatus);
   if(scanSelectStatus != OK)
       return scanSelectStatus;
-          
-  HeapFileScan myHeapScan2 = HeapFileScan(attrDesc2.relName, scanSelectStatus);
+  //attrDesc1 == inner! Always Index Scan
+  Index scanIndex(attrDesc1.relName, attrDesc1.attrOffset, attrDesc1.attrLen, (Datatype)attrDesc1.attrType, 0, scanSelectStatus);
+  if(scanSelectStatus != OK)
+      return scanSelectStatus;      
+  //HeapFileScan myHeapScan2 = HeapFileScan(attrDesc2.relName, scanSelectStatus);
   //ABOVE: (char*)(attrDesc1.attrName) is probably wrong.  Maybe not tho...
-  
+HeapFileScan myHeapScan2 = HeapFileScan(attrDesc1.relName, scanSelectStatus);
+  HeapFile myHeap(result, scanSelectStatus);
   if(scanSelectStatus != OK)
       return scanSelectStatus;
   
-  HeapFile myHeap(result, scanSelectStatus);
+  RID myRid, myRid2;
   
-  RID myRid;
-  RID myRid2;
-  
-  Record newRecord;
-  newRecord.length = reclen;
-  newRecord.data = malloc (reclen);
   Record oldRecord;
   Record oldRecord2;
   
   while(myHeapScan.scanNext(myRid, oldRecord) == OK)
   {
-      
-      
+      scanIndex.startScan(oldRecord.data+attrDesc2.attrOffset);
+      //myHeapScan2 = HeapFileScan(attrDesc1.relName, scanSelectStatus);
       if(scanSelectStatus != OK)
-      {
-        free(newRecord.data);
         return scanSelectStatus;
-      }
-      
-      while(myHeapScan2.scanNext(myRid2, oldRecord2) == OK)
+      while(scanIndex.scanNext(myRid2) == OK)
       {
+         //outer, inner => have to flip Op, see evalOp - it does just that!
+         scanSelectStatus = myHeapScan2.getRandomRecord(myRid2, oldRecord2);
          
-          int offset = 0;
-          for(int i = 0; i < projCnt; i++){
-            memcpy(((char *)newRecord.data) + offset, (char*)(oldRecord.data) + attrDescArray[i].attrOffset, attrDescArray[i].attrLen);
-            offset += attrDescArray[i].attrLen;
-          }
-            //int offset2 = 0;      
-
-            if(scanSelectStatus != OK)
-            {
-              free(newRecord.data);
-              return scanSelectStatus;
-            }
-
-            for(int i = 0; i < projCnt; i++)
-            {
-              memcpy(((char *)newRecord.data) + offset, (char*)(oldRecord2.data) + attrDescArray[i].attrOffset, attrDescArray[i].attrLen);
-              offset += attrDescArray[i].attrLen;
-            }
-
-            /*scanSelectStatus = myHeap.insertRecord(newRecord, myRid);
-
-            if(scanSelectStatus != OK)
-            {
-                free(newRecord.data);
-                return scanSelectStatus;
-            }
-             */
+         int temp = matchRec(oldRecord, oldRecord2, attrDesc2, attrDesc1);
+         if(evalOp(temp, op)){
+             Record newRecord;
+             newRecord.length = reclen;
+             newRecord.data = malloc (reclen);
+             int offset = 0;
+             for(int i = 0; i < projCnt; i++){
+                     if (strcmp(attrDesc2.relName, attrDescArray[i].relName) == 0){
+                             memcpy(((char *)newRecord.data) + offset, (char*)(oldRecord.data) + attrDescArray[i].attrOffset, attrDescArray[i].attrLen);
+                             offset += attrDescArray[i].attrLen;
+                     }
+                     else{
+                             memcpy(((char*) newRecord.data) + offset, (char*)(oldRecord2.data) + attrDescArray[i].attrOffset, attrDescArray[i].attrLen);
+                             offset += attrDescArray[i].attrLen;
+                     }
+             }   
+             scanSelectStatus = myHeap.insertRecord(newRecord, myRid);
+             if(scanSelectStatus != OK)
+                     return scanSelectStatus;
+             free(newRecord.data);
+         }
       }
-      
-      scanSelectStatus = myHeap.insertRecord(newRecord, myRid);
-      
-      if(scanSelectStatus != OK)
-      {
-        free(newRecord.data);
-        return scanSelectStatus;
-      }
-      
-      return OK;
+      scanSelectStatus = scanIndex.endScan();
+      if (scanSelectStatus != OK)
+          return scanSelectStatus;
   }
   
-  myHeapScan.endScan();
-  free(newRecord.data);
+  myHeapScan.endScan();  
   
-  /* Your solution goes here */
   return OK;
 }

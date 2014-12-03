@@ -13,16 +13,16 @@
  * Joins two relations
  *
  * Returns:
- * 	OK on success
- * 	an error code otherwise
+ *  OK on success
+ *  an error code otherwise
  */
 
 Status Operators::Join(const string& result,           // Name of the output relation 
                        const int projCnt,              // Number of attributes in the projection
-    	               const attrInfo projNames[],     // List of projection attributes
-    	               const attrInfo* attr1,          // Left attr in the join predicate
-    	               const Operator op,              // Predicate operator
-    	               const attrInfo* attr2)          // Right attr in the join predicate
+                       const attrInfo projNames[],     // List of projection attributes
+                       const attrInfo* attr1,          // Left attr in the join predicate
+                       const Operator op,              // Predicate operator
+                       const attrInfo* attr2)          // Right attr in the join predicate
 {
     Status joinStatus;
     AttrDesc attr1Desc;
@@ -32,21 +32,36 @@ Status Operators::Join(const string& result,           // Name of the output rel
         return joinStatus;
     joinStatus = attrCat->getInfo(attr2->relName, attr2->attrName, attr2Desc); 
     if(joinStatus != OK) 
-        return joinStatus;	
+        return joinStatus;  
     AttrDesc descOutput[projCnt];
     int reclen=0;
     for (int i=0; i<projCnt; i++) {
-	joinStatus = attrCat->getInfo(projNames[i].relName, projNames[i].attrName, descOutput[i]); 
+    joinStatus = attrCat->getInfo(projNames[i].relName, projNames[i].attrName, descOutput[i]); 
         reclen += descOutput[i].attrLen;
-	if(joinStatus != OK) 
+    if(joinStatus != OK) 
             return joinStatus;
     }
     
     
-    
-    /* Your solution goes here */
-    Operators::SNL(result, projCnt, descOutput, attr1Desc, op, attr2Desc, reclen);
+    if(op == EQ && (attr1Desc.indexed || attr2Desc.indexed)){
+        if (attr1Desc.indexed)
+            Operators::INL(result, projCnt, descOutput, attr1Desc, op, attr2Desc, reclen);
+        else
+            Operators::INL(result, projCnt, descOutput, attr2Desc, op, attr1Desc, reclen);
+                
+        return OK;
+    }
 
+//SORT MERGE FUN!!!
+
+    if (op != EQ)
+    {
+        Operators::SNL(result, projCnt, descOutput, attr1Desc, op, attr2Desc, reclen);
+        return OK;
+    }
+    
+    
+    
     return OK;
 }
 

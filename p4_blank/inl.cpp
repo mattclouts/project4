@@ -70,7 +70,7 @@ HeapFileScan myHeapScan2 = HeapFileScan(attrDesc1.relName, scanSelectStatus);
   
   while(myHeapScan.scanNext(myRid, oldRecord) == OK)
   {
-      scanIndex.startScan(oldRecord.data+attrDesc2.attrOffset);
+      scanIndex.startScan((char*)oldRecord.data+attrDesc2.attrOffset);
       //myHeapScan2 = HeapFileScan(attrDesc1.relName, scanSelectStatus);
       if(scanSelectStatus != OK)
         return scanSelectStatus;

@@ -53,8 +53,11 @@ Status Operators::Join(const string& result,           // Name of the output rel
     }
 
 //SORT MERGE FUN!!!
-
-    if (op != EQ)
+    else if (op == EQ){
+        Operators::SMJ(result, projCnt, descOutput, attr2Desc, op, attr1Desc, reclen);
+        return OK;
+    }
+    else
     {
         Operators::SNL(result, projCnt, descOutput, attr1Desc, op, attr2Desc, reclen);
         return OK;

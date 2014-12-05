@@ -122,7 +122,7 @@ Status Operators::SMJ(const string& result,           // Output relation name
              if (smjStatus != OK)
                  return smjStatus;
              smjStatus2 = attr1SortedFile.next(ptrRecord);
-             free(newRecord.data);        
+             free(newRecord.data);     
           }
           //Now, increment B ptr...
           smjStatus = attr2SortedFile.next(rec2);
@@ -136,6 +136,8 @@ Status Operators::SMJ(const string& result,           // Output relation name
   }
 
     /* Your solution goes here */
-
+  delete [] outputDesc;
+  delete [] attr1Desc;
+  delete [] attr2Desc;
   return OK;   
   }

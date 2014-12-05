@@ -32,10 +32,8 @@ Status Updates::Insert(const string& relation,      // Name of the relation
     if (relStatus != OK)
         return relStatus;
     
-    for (int i = 0; i < attrCnt; i++){
-        if (attrList[i].attrName == NULL)
-            return ATTRTYPEMISMATCH;
-    }
+    if(attrCnt != relAttrCnt)
+        return ATTRTYPEMISMATCH;
     for (int i = 0; i < relAttrCnt; i++){
         recordSize += relAttrList[i].attrLen;
     }
@@ -81,5 +79,6 @@ Status Updates::Insert(const string& relation,      // Name of the relation
         }
     }
     free(newRecord.data);
+    delete [] relAttrList;
     return OK;
 }

@@ -20,18 +20,19 @@ Status Operators::ScanSelect(const string& result,       // Name of the output r
   
   Status scanSelectStatus;
   
-  /*
+  
   HeapFileScan *myHeapScan = NULL;
           
   if(op == NOTSET)
-      myHeapScan = new HeapFileScan(result, scanSelectStatus);
+      myHeapScan = new HeapFileScan(projNames[0].relName, scanSelectStatus);
   else
-      myHeapScan = new HeapFileScan(result, attrDesc->attrOffset, attrDesc->attrLen, (Datatype)attrDesc->attrType, (char*)(attrValue), op, scanSelectStatus);
+      myHeapScan = new HeapFileScan(projNames[0].relName, attrDesc->attrOffset, attrDesc->attrLen, (Datatype)attrDesc->attrType, (char*)(attrValue), op, scanSelectStatus);
   
-  */
-  HeapFileScan myHeapScan(projNames[0].relName, scanSelectStatus);
+  
+  /*HeapFileScan myHeapScan(projNames[0].relName, scanSelectStatus);
   if(op != NOTSET)
-      HeapFileScan myHeapScan(projNames[0].relName, attrDesc->attrOffset, attrDesc->attrLen, (Datatype)attrDesc->attrType, (char*)(attrValue), op, scanSelectStatus);
+      myHeapScan(projNames[0].relName, attrDesc->attrOffset, attrDesc->attrLen, (Datatype)attrDesc->attrType, (char*)(attrValue), op, scanSelectStatus);
+   */
   if(scanSelectStatus != OK)
       return scanSelectStatus;
   
@@ -51,7 +52,7 @@ Status Operators::ScanSelect(const string& result,       // Name of the output r
   newRecord.length = reclen;
   newRecord.data = malloc (reclen);
   Record oldRecord;
-  while(myHeapScan.scanNext(outRid, oldRecord) == OK)
+  while(myHeapScan->scanNext(outRid, oldRecord) == OK)
   {
       int offset = 0;      
       
@@ -75,7 +76,8 @@ Status Operators::ScanSelect(const string& result,       // Name of the output r
         return scanSelectStatus;
       }
   }
-  myHeapScan.endScan();
+  myHeapScan->endScan();
+  delete myHeapScan;
   free(newRecord.data);
   /* Your solution goes here */
   return OK;
